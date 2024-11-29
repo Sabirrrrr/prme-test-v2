@@ -1,17 +1,25 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
+from sqlalchemy import Integer, String, Boolean, ForeignKey
+from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 from sqlalchemy.sql.expression import text
-from sqlalchemy.orm import relationship
+from typing import TYPE_CHECKING
 
-from ...core.database import Base
+from ...database import Base
+
+if TYPE_CHECKING:
+    from .user_model import User
 
 class Post(Base):
     __tablename__ = "posts"
-    id = Column(Integer, primary_key=True, nullable=False)
-    title = Column(String, nullable=False)
-    content = Column(String, nullable=False)   
-    published = Column(Boolean, server_default='TRUE', nullable=False)   
-    created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
-    owner_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, nullable=False)
+    title: Mapped[str] = mapped_column(String, nullable=False)
+    content: Mapped[str] = mapped_column(String, nullable=False)   
+    published: Mapped[bool] = mapped_column(Boolean, server_default='TRUE', nullable=False)   
+    created_at: Mapped[TIMESTAMP] = mapped_column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
+    owner_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
-    owner = relationship("User")
+    owner: Mapped['User'] = relationship(
+        "User", 
+        back_populates="posts"
+    )

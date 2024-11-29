@@ -10,7 +10,7 @@ interface RegisterCredentials {
 
 export class AuthService {
   private static readonly AUTH_URL = '/api/auth';
-  private static readonly USERS_URL = '/api/users';
+  private static readonly USERS_URL = 'http://localhost:8000/api/users';
 
   static async login(credentials: LoginCredentials): Promise<{ access_token: string; token_type: string }> {
     const response = await fetch(`${this.AUTH_URL}/login`, {

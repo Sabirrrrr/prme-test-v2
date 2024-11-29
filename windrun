@@ -1,0 +1,83 @@
+# WindRun: Backend and Frontend Startup Guide
+
+## Backend Startup (FastAPI)
+### Prerequisites
+- Ensure you are in the `backend` directory
+- Activate virtual environment
+- Required command:
+```bash
+python -m uvicorn app.main:app --reload
+```
+- Port: 8000
+- Access Swagger Docs: http://localhost:8000/docs
+
+## Frontend Startup (PNPM Workspace)
+### Specific Startup Command
+```bash
+# In frontend directory
+pnpm --filter @votocon/main dev
+```
+
+### Detailed Startup Process
+1. Navigate to `frontend` directory
+2. Use exact command: `pnpm --filter @votocon/main dev`
+3. Ensures Vite server starts in `packages/votocon-main`
+4. Default port: 5173
+5. Access: http://localhost:5173
+
+### Troubleshooting 404 Errors
+- Verify you're in the correct directory
+- Confirm `@votocon/main` package exists
+- Check `vite.config.ts` settings
+- Ensure all dependencies installed with `pnpm install`
+
+### Proxy Configuration
+- Vite proxy set to forward `/api` requests to backend
+- Backend target: `http://localhost:8000`
+- Allows seamless API communication between frontend and backend
+
+## Troubleshooting
+1. Verify virtual environment is activated for backend
+2. Ensure all dependencies are installed
+   - Backend: `pip install -r requirements.txt`
+   - Frontend: `pnpm install`
+3. Check that no other processes are using ports 8000 or 5173
+
+## Stopping Servers
+
+### Backend Shutdown Methods
+1. **Keyboard Interrupt (Recommended)**
+   - Press `Ctrl + C` in the backend terminal
+   - Gracefully stops the Uvicorn server
+
+2. **Force Termination (Windows)**
+   ```bash
+   # Find and kill process using port 8000
+   netstat -ano | findstr :8000
+   taskkill /PID <ProcessID> /F
+   ```
+
+### Frontend Shutdown Methods
+1. **Keyboard Interrupt (Recommended)**
+   - Press `Ctrl + C` in the frontend terminal
+   - Stops the Vite development server
+
+2. **Force Termination (Windows)**
+   ```bash
+   # Find and kill process using port 5173
+   netstat -ano | findstr :5173
+   taskkill /PID <ProcessID> /F
+   ```
+
+### Alternative Shutdown (Task Manager)
+1. Open Windows Task Manager
+2. Go to "Processes" tab
+3. Find and end tasks:
+   - Python processes related to Uvicorn
+   - Node.js processes related to Vite
+   - Any processes using ports 8000 or 5173
+
+## Best Practices
+- Always use keyboard interrupt (`Ctrl + C`) first
+- Use force termination only if server doesn't respond
+- Check for orphaned processes periodically

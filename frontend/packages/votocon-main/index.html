@@ -4,37 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Votocon Main</title>
+    <script type="module" src="/src/main.ts"></script>
   </head>
   <body class="bg-gray-50">
-    <div class="flex">
-      <!-- Sidebar -->
-      <div class="w-[240px] shrink-0">
-        <leftside-navbar></leftside-navbar>
-      </div>
-
-      <!-- Main content -->
-      <div class="flex-1">
-        <!-- Header -->
-        <header class="bg-white shadow-sm">
-          <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 class="text-xl font-semibold text-gray-800">Votocon</h1>
-            <profile-menu></profile-menu>
-          </div>
-        </header>
-
-        <!-- Main content area -->
-        <main class="max-w-7xl mx-auto px-4 py-8">
-          <div class="bg-white shadow-sm rounded-lg p-6">
-            <h2 class="text-lg font-semibold mb-4">Welcome to Votocon</h2>
-            <p class="text-gray-600">This is your dashboard. Start managing your voting systems here.</p>
-          </div>
-        </main>
-      </div>
-    </div>
-
-    <!-- Footer -->
-    <app-footer></app-footer>
-
-    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

@@ -1,22 +1,57 @@
-from fastapi import APIRouter, Depends, status, HTTPException, Response
-from fastapi.security.oauth2 import OAuth2PasswordRequestForm
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from ...core.database import get_db
-from ...core.security import verify_password, create_access_token
-from ...models.domain import User
-from ...schemas import Token
+from ...schemas.token_schema import Token
+from ...services.auth_service import AuthService
+from ...repositories.user_repository import UserRepository
 
-router = APIRouter(tags=['Authentication'])
+router = APIRouter()
 
-@router.post('/login', response_model=Token)
-def login(user_credentials: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == user_credentials.username).first()
+def get_auth_service(db: Session = Depends(get_db)) -> AuthService:
+    repository = UserRepository(db)
+    return AuthService(repository)
+
+@router.post("/login", response_model=Token)
+async def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    service: AuthService = Depends(get_auth_service)
+):
+    """
+    Login endpoint that accepts form-urlencoded data:
+    - username: User's email
+    - password: User's password
+    """
+    user = service.authenticate_user(form_data.username, form_data.password)
     if not user:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Invalid Credentials")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     
-    if not verify_password(user_credentials.password, user.password):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Invalid Credentials")
-    
-    access_token = create_access_token(data={"user_id": user.id})
-    return {"access_token": access_token, "token_type": "bearer"}
+    if user.status != "active":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User account is not active",
+        )
+
+    return service.create_tokens(user)
+
+@router.post("/refresh", response_model=Token)
+async def refresh_token(
+    refresh_token: str,
+    service: AuthService = Depends(get_auth_service)
+):
+    """
+    Refresh token endpoint to get a new access token using a refresh token
+    """
+    tokens = service.refresh_access_token(refresh_token)
+    if not tokens:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid refresh token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return tokens
