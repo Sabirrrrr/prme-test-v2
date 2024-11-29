@@ -1,3 +1,16 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --border-color: #e5e7eb;
+  --text-color: #374151;
+  --bg-color: #f9fafb;
+  --hover-bg: #f3f4f6;
+  --title-color: #6b7280;
+  --logo-color: #111827;
+  --button-bg: #f9fafb;
+  --button-hover-bg: #f3f4f6;
+  --button-color: #374151;
+  --heading-color: #111827;
+}
