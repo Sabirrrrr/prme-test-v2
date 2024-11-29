@@ -1,0 +1,9 @@
+{
+  "name": "votocon",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "pnpm -F @votocon/main dev",
+    "build": "pnpm -F @votocon/main build"
+  }
+}
