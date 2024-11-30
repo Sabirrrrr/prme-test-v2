@@ -1,167 +1,90 @@
 import { LitElement, html, css } from 'lit';
-import { state, customElement } from 'lit/decorators.js';
-import { AuthService } from '../../services/auth';
+import { customElement, property } from 'lit/decorators.js';
+import { AuthenticationService } from '@services/auth/authentication-service';
+import { AppStateService } from '@services/state/app-state-service';
+
+type UserProfile = {
+  email: string;
+  user_type: 'individual' | 'corporate';
+  status?: string;
+  id?: string;
+}
 
 @customElement('votocon-main-profile-menu')
 export class VotoconMainProfileMenu extends LitElement {
-  private _isMenuOpen = false;
-  private _isLoggedIn = false;
-  private _showLoginForm = true;
+  @property({ type: Boolean }) 
+  isMenuOpen = false;
+
+  @property({ type: Boolean }) 
+  isLoggedIn = false;
+
+  @property({ type: Boolean }) 
+  showLoginForm = true;
+
+  @property({ type: String }) 
   private _email = '';
+
+  @property({ type: String }) 
   private _password = '';
+
+  @property({ type: String }) 
   private _errorMessage = '';
-  private _userType = 'individual';
-  private _userProfile = null;
+
+  @property({ type: String }) 
+  private _userType: 'individual' | 'corporate' = 'individual';
+
+  @property({ type: Object }) 
+  private _userProfile: UserProfile | null = null;
 
   constructor() {
     super();
-    this.checkAuthStatus();
+    this.isLoggedIn = AuthenticationService.isAuthenticated();
   }
 
-  private async checkAuthStatus() {
-    this.isLoggedIn = AuthService.isAuthenticated();
+  public async checkAuthStatus(): Promise<void> {
+    this.isLoggedIn = AuthenticationService.isAuthenticated();
     if (this.isLoggedIn) {
       try {
-        this._userProfile = await AuthService.getCurrentUser();
+        this._userProfile = await AuthenticationService.getCurrentUser();
         if (!this._userProfile) {
           this.isLoggedIn = false;
-          this.errorMessage = 'Failed to load user profile';
+          this._errorMessage = 'Failed to load user profile';
         }
+        AppStateService.setState('userProfile', this._userProfile);
       } catch (error) {
         console.error('Error checking auth status:', error);
         this.isLoggedIn = false;
-        this.errorMessage = 'Failed to load user profile';
+        this._errorMessage = 'Failed to load user profile';
       }
     }
   }
 
-  @state()
-  get isMenuOpen() { return this._isMenuOpen; }
-  set isMenuOpen(value: boolean) {
-    const oldValue = this._isMenuOpen;
-    this._isMenuOpen = value;
-    this.requestUpdate('isMenuOpen', oldValue);
-  }
-
-  @state()
-  get isLoggedIn() { return this._isLoggedIn; }
-  set isLoggedIn(value: boolean) {
-    const oldValue = this._isLoggedIn;
-    this._isLoggedIn = value;
-    this.requestUpdate('isLoggedIn', oldValue);
-  }
-
-  @state()
-  get showLoginForm() { return this._showLoginForm; }
-  set showLoginForm(value: boolean) {
-    const oldValue = this._showLoginForm;
-    this._showLoginForm = value;
-    this.requestUpdate('showLoginForm', oldValue);
-  }
-
-  @state()
-  get email() { return this._email; }
-  set email(value: string) {
-    const oldValue = this._email;
-    this._email = value;
-    this.requestUpdate('email', oldValue);
-  }
-
-  @state()
-  get password() { return this._password; }
-  set password(value: string) {
-    const oldValue = this._password;
-    this._password = value;
-    this.requestUpdate('password', oldValue);
-  }
-
-  @state()
-  get errorMessage() { return this._errorMessage; }
-  set errorMessage(value: string) {
-    const oldValue = this._errorMessage;
-    this._errorMessage = value;
-    this.requestUpdate('errorMessage', oldValue);
-  }
-
-  @state()
-  get userType() { return this._userType; }
-  set userType(value: string) {
-    const oldValue = this._userType;
-    this._userType = value;
-    this.requestUpdate('userType', oldValue);
-  }
-
-  private toggleMenu() {
-    this.isMenuOpen = !this.isMenuOpen;
-  }
-
-  private async handleSubmit(e: Event) {
-    e.preventDefault();
-    this.errorMessage = '';
-
+  public async login(): Promise<void> {
     try {
-      if (this.showLoginForm) {
-        await AuthService.login({
-          username: this.email,
-          password: this.password,
-        });
-        
-        this._userProfile = await AuthService.getCurrentUser();
-        if (!this._userProfile) {
-          throw new Error('Failed to load user profile after login');
-        }
-        
-        this.isLoggedIn = true;
-        this.isMenuOpen = false;
-        this.email = '';
-        this.password = '';
-      } else {
-        await AuthService.register({
-          email: this.email,
-          password: this.password,
-          user_type: this.userType as 'individual' | 'corporate',
-        });
-        
-        this.showLoginForm = true;
-        this.errorMessage = 'Registration successful! Please login.';
-        this.email = '';
-        this.password = '';
-      }
+      await AuthenticationService.login(this._email, this._password);
+      const userProfile = await AuthenticationService.getCurrentUser();
+      
+      this.isLoggedIn = true;
+      AppStateService.setState('userProfile', userProfile);
+      AppStateService.setState('isLoggedIn', true);
+      
+      this.showLoginForm = false;
     } catch (error) {
-      console.error('Auth error:', error);
-      if (error instanceof Error) {
-        this.errorMessage = error.message;
-      } else {
-        this.errorMessage = 'An error occurred. Please try again.';
-      }
+      console.error('Login failed', error);
+      this.isLoggedIn = false;
     }
   }
 
-  private handleInput(e: Event) {
-    const target = e.target as HTMLInputElement;
-    if (target.name === 'email') {
-      this.email = target.value;
-    } else if (target.name === 'password') {
-      this.password = target.value;
-    } else if (target.name === 'userType') {
-      this.userType = target.value;
-    }
-  }
-
-  private toggleForm() {
-    this.showLoginForm = !this.showLoginForm;
-    this.errorMessage = '';
-    this.email = '';
-    this.password = '';
-  }
-
-  private logout() {
-    AuthService.logout();
-    this._userProfile = null;
+  public logout(): void {
+    AuthenticationService.logout();
     this.isLoggedIn = false;
-    this.isMenuOpen = false;
-    this.email = '';
-    this.password = '';
+    AppStateService.setState('userProfile', null);
+    AppStateService.setState('isLoggedIn', false);
+    this.showLoginForm = true;
+  }
+
+  public toggleMenu(): void {
+    this.isMenuOpen = !this.isMenuOpen;
   }
 
   render() {
@@ -185,7 +108,7 @@ export class VotoconMainProfileMenu extends LitElement {
                 </button>
               </div>
             ` : html`
-              <form @submit=${this.handleSubmit}>
+              <form @submit=${this.handleLoginSubmit}>
                 <h2 class="form-title">
                   ${this.showLoginForm ? 'Login' : 'Create Account'}
                 </h2>
@@ -196,8 +119,8 @@ export class VotoconMainProfileMenu extends LitElement {
                     type="email"
                     name="email"
                     class="form-input"
-                    .value=${this.email}
-                    @input=${this.handleInput}
+                    .value=${this._email}
+                    @input=${(e: Event) => this._email = (e.target as HTMLInputElement).value}
                     required
                   />
                 </div>
@@ -208,8 +131,8 @@ export class VotoconMainProfileMenu extends LitElement {
                     type="password"
                     name="password"
                     class="form-input"
-                    .value=${this.password}
-                    @input=${this.handleInput}
+                    .value=${this._password}
+                    @input=${(e: Event) => this._password = (e.target as HTMLInputElement).value}
                     required
                   />
                 </div>
@@ -220,8 +143,8 @@ export class VotoconMainProfileMenu extends LitElement {
                     <select
                       name="userType"
                       class="form-input"
-                      .value=${this.userType}
-                      @change=${this.handleInput}
+                      .value=${this._userType}
+                      @change=${this.handleUserTypeChange}
                     >
                       <option value="individual">Individual</option>
                       <option value="corporate">Corporate</option>
@@ -229,8 +152,8 @@ export class VotoconMainProfileMenu extends LitElement {
                   </div>
                 ` : ''}
 
-                ${this.errorMessage ? html`
-                  <div class="error-message">${this.errorMessage}</div>
+                ${this._errorMessage ? html`
+                  <div class="error-message">${this._errorMessage}</div>
                 ` : ''}
 
                 <button type="submit" class="btn btn-primary">
@@ -244,7 +167,7 @@ export class VotoconMainProfileMenu extends LitElement {
                   <button 
                     type="button"
                     class="toggle-button"
-                    @click=${this.toggleForm}
+                    @click=${() => this.showLoginForm = !this.showLoginForm}
                   >
                     ${this.showLoginForm ? 'Sign up' : 'Login'}
                   </button>
@@ -255,6 +178,23 @@ export class VotoconMainProfileMenu extends LitElement {
         ` : ''}
       </div>
     `;
+  }
+
+  private handleLoginSubmit(e: Event): void {
+    e.preventDefault();
+    this.login();
+  }
+
+  private handleUserTypeChange(e: Event): void {
+    const target = e.target as HTMLSelectElement;
+    const value = target.value;
+    
+    if (value === 'individual' || value === 'corporate') {
+      this._userType = value;
+    } else {
+      console.warn(`Invalid user type: ${value}. Defaulting to 'individual'.`);
+      this._userType = 'individual';
+    }
   }
 
   static styles = css`

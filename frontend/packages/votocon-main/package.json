@@ -7,17 +7,43 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "clean": "rm -rf .vite && rm -rf dist"
+    "clean": "rm -rf .vite && rm -rf dist",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@vaadin/router": "^2.0.0",
-    "lit": "^3.1.0"
+    "@vaadin/router": "^2.0.0"
   },
   "devDependencies": {
+    "@open-wc/testing": "^4.0.0",
+    "@rollup/plugin-replace": "^6.0.1",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.0.1",
+    "@types/chai": "^5.0.1",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.10.1",
+    "@types/sinon": "^17.0.3",
+    "@web/dev-server-esbuild": "^1.0.3",
+    "@web/dev-server-legacy": "^2.1.1",
+    "@web/dev-server-rollup": "^0.6.4",
+    "@web/test-runner": "^0.19.0",
+    "@web/test-runner-playwright": "^0.11.0",
     "autoprefixer": "^10.4.16",
+    "chai": "^5.1.2",
+    "chai-dom": "^1.12.0",
+    "jsdom": "^25.0.1",
+    "lit": "^3.2.1",
+    "mocha": "^10.8.2",
+    "playwright": "^1.49.0",
     "postcss": "^8.4.32",
+    "sinon": "^19.0.2",
+    "sinon-chai": "^4.0.0",
     "tailwindcss": "^3.4.0",
-    "typescript": "^5.3.0",
-    "vite": "^5.0.0"
+    "typescript": "^5.7.2",
+    "vite": "^5.0.0",
+    "vite-plugin-lit-css": "^2.0.0",
+    "vitest": "^2.1.6"
   }
 }

@@ -16,9 +16,24 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
+    "types": [
+      "mocha", 
+      "chai", 
+      "sinon", 
+      "@types/mocha", 
+      "@types/chai", 
+      "@types/sinon",
+      "node"
+    ],
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@components/*": ["src/components/*"],
+      "@services/*": ["src/services/*"],
+      "@models/*": ["src/models/*"],
+      "@utils/*": ["src/utils/*"],
+      "@config/*": ["src/config/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src/**/*.ts", "tests/**/*.ts"],
+  "exclude": ["node_modules"]
 }
